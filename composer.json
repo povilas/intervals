@@ -1,0 +1,24 @@
+{
+    "name": "puovils/intervals",
+    "type": "library",
+    "description": "Manipulation with intervals",
+    "keywords": ["date", "time", "interval", "datetime", "dateinterval"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Povilas Skruibis",
+            "email": "puovils@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0"
+    },
+    "autoload": {
+        "psr-0": {"Puovils\\Intervals": "src/"}
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "1.0-dev"
+        }
+    }
+}
