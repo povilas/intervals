@@ -6,11 +6,11 @@ class IntervalTest extends \PHPUnit_Framework_TestCase
 {
     public function testCreation()
     {
-        $since = new \DateTime('2000-01-01');
-        $until = new \DateTime('2000-01-02');
-        $interval = new Interval($since, $until);
+        $low = new IntervalValue(1, true);
+        $high = new IntervalValue(2, true);
+        $interval = new Interval($low, $high);
 
-        $this->assertEquals($since, $interval->since());
-        $this->assertEquals($until, $interval->until());
+        $this->assertEquals($low, $interval->low());
+        $this->assertEquals($high, $interval->high());
     }
 }

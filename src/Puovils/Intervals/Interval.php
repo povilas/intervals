@@ -9,38 +9,38 @@ namespace Puovils\Intervals;
 class Interval
 {
     /**
-     * @var mixed
+     * @var IntervalValue
      */
-    private $since;
+    private $low;
 
     /**
-     * @var mixed
+     * @var IntervalValue
      */
-    private $until;
+    private $high;
 
     /**
-     * @param mixed $since
-     * @param mixed $until
+     * @param IntervalValue $low
+     * @param IntervalValue $high
      */
-    public function __construct($since, $until)
+    public function __construct(IntervalValue $low, IntervalValue $high)
     {
-        $this->since = $since;
-        $this->until = $until;
+        $this->low = $low;
+        $this->high = $high;
     }
 
     /**
-     * @return mixed
+     * @return IntervalValue
      */
-    public function since()
+    public function low()
     {
-        return $this->since;
+        return $this->low;
     }
 
     /**
-     * @return mixed
+     * @return IntervalValue
      */
-    public function until()
+    public function high()
     {
-        return $this->until;
+        return $this->high;
     }
 }

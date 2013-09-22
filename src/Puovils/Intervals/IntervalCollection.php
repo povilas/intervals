@@ -9,17 +9,23 @@ namespace Puovils\Intervals;
 class IntervalCollection implements \IteratorAggregate
 {
     /**
+     * Intervals in collection
+     *
      * @var Interval[]
      */
     private $intervals = [];
 
     /**
+     * Function for comparing interval values
+     *
      * @var callable
      */
     private $compareFunction;
 
     /**
-     * @param callable $compareFunction
+     * Constructor
+     *
+     * @param callable $compareFunction Function used to compare interval values
      */
     public function __construct(\Closure $compareFunction = null)
     {
@@ -31,12 +37,16 @@ class IntervalCollection implements \IteratorAggregate
     }
 
     /**
+     * Add interval to collection
+     *
      * @param Interval $interval
      * @return $this
      */
     public function add(Interval $interval)
     {
-        if (0 == $this->cmp($interval->since(), $interval->until())) {
+        if (0 == $this->cmpV($interval->low(), $interval->high()) &&
+            (!$interval->low()->isIncluded() || !$interval->high()->isIncluded())
+            ) {
             return $this;
         }
 
@@ -47,33 +57,61 @@ class IntervalCollection implements \IteratorAggregate
     }
 
     /**
+     * Remove interval from collection
+     *
      * @param Interval $interval
      * @return $this
      */
     public function sub(Interval $interval)
     {
         foreach ($this->intervals as $index => $current) {
-            if (0 <= $this->cmp($current->since(), $interval->since()) &&
-                0 >= $this->cmp($current->until(), $interval->until())) {
+            if (0 <= $this->cmpV($current->low(), $interval->low()) &&
+                0 >= $this->cmpI($current->low(), $interval->low()) &&
+                0 >= $this->cmpV($current->high(), $interval->high()) &&
+                0 >= $this->cmpI($current->high(), $interval->high())
+                ) {
                 unset($this->intervals[$index]);
                 continue;
             }
-            if (0 > $this->cmp($current->since(), $interval->since()) &&
-                0 < $this->cmp($current->until(), $interval->until())) {
-                $this->intervals[] = new Interval($current->since(), $interval->since());
-                $this->intervals[] = new Interval($interval->until(), $current->until());
+            if ((0 > $this->cmpV($current->low(), $interval->low()) ||
+                    (0 == $this->cmpV($current->low(), $interval->low()) &&
+                     0 < $this->cmpI($current->low(), $interval->low()))
+                ) &&
+                (0 < $this->cmpV($current->high(), $interval->high()) ||
+                    (0 == $this->cmpV($current->high(), $interval->high()) &&
+                     0 < $this->cmpI($current->high(), $interval->high())))
+                ) {
+                $builder = new IntervalBuilder();
+                $this->intervals[] = $builder
+                    ->low($current->low()->value(), $current->low()->isIncluded())
+                    ->high($interval->low()->value(), !$interval->low()->isIncluded())
+                    ->getInterval();
+                $this->intervals[] = $builder
+                    ->low($interval->high()->value(), !$interval->high()->isIncluded())
+                    ->high($current->high()->value(), $current->high()->isIncluded())
+                    ->getInterval();
                 unset($this->intervals[$index]);
                 continue;
             }
-            if (0 <= $this->cmp($current->since(), $interval->since()) &&
-                0 <= $this->cmp($current->until(), $interval->until()) &&
-                0 >  $this->cmp($current->since(), $interval->until())) {
-                $this->intervals[$index] = new Interval($interval->until(), $current->until());
+            if (0 <= $this->cmpV($current->low(), $interval->low()) &&
+                0 <= $this->cmpV($current->high(), $interval->high()) &&
+                0 >=  $this->cmpV($current->low(), $interval->high())
+                ) {
+                $builder = new IntervalBuilder();
+                $this->intervals[$index] = $builder
+                    ->low($interval->high()->value(), !$interval->high()->isIncluded())
+                    ->high($current->high()->value(), $current->high()->isIncluded())
+                    ->getInterval();
             }
-            if (0 >= $this->cmp($current->since(), $interval->since()) &&
-                0 >= $this->cmp($current->until(), $interval->until()) &&
-                0 <  $this->cmp($current->until(), $interval->since())) {
-                $this->intervals[$index] = new Interval($current->since(), $interval->since());
+            if (0 >= $this->cmpV($current->low(), $interval->low()) &&
+                0 >= $this->cmpV($current->high(), $interval->high()) &&
+                0 <=  $this->cmpV($current->high(), $interval->low())
+                ) {
+                $builder = new IntervalBuilder();
+                $this->intervals[$index] = $builder
+                    ->low($current->low()->value(), $current->low()->isIncluded())
+                    ->high($interval->low()->value(), !$interval->low()->isIncluded())
+                    ->getInterval();
             }
         }
 
@@ -83,30 +121,45 @@ class IntervalCollection implements \IteratorAggregate
     }
 
     /**
-     * @param mixed $point
+     * Does given value exists in collection
+     *
+     * @param mixed $value
      * @return bool
      */
-    public function contains($point)
+    public function contains($value)
     {
-        foreach ($this->intervals as $interval) {
-            if (0 <= $this->cmp($point, $interval->since())&&
-                0 >  $this->cmp($point, $interval->until())) {
-                return true;
-            }
-        }
+        $builder = new IntervalBuilder();
+        $interval = $builder
+            ->low($value, true)
+            ->high($value, true)
+            ->getInterval();
 
-        return false;
+        return $this->containsInterval($interval);
     }
 
     /**
+     * Does given interval exists in collection
+     *
      * @param Interval $interval
      * @return bool
      */
     public function containsInterval(Interval $interval)
     {
         foreach ($this->intervals as $current) {
-            if (0 >= $this->cmp($current->since(), $interval->since()) &&
-                0 <= $this->cmp($current->until(), $interval->until())) {
+            if (0 >= $this->cmpV($current->low(), $interval->low()) &&
+                0 <= $this->cmpV($current->high(), $interval->high())
+                ) {
+                if (0 == $this->cmpV($current->low(), $interval->low()) &&
+                    0 > $this->cmpI($current->low(), $interval->low())
+                    ) {
+                    return false;
+                }
+                if (0 == $this->cmpV($current->high(), $interval->high()) &&
+                    0 > $this->cmpI($current->high(), $interval->high())
+                    ) {
+                    return false;
+                }
+
                 return true;
             }
         }
@@ -115,9 +168,11 @@ class IntervalCollection implements \IteratorAggregate
     }
 
     /**
+     * Get list of intervals in collection
+     *
      * @return Interval[]
      */
-    public function intervals()
+    public function getIntervals()
     {
         return $this->intervals;
     }
@@ -132,7 +187,7 @@ class IntervalCollection implements \IteratorAggregate
     }
 
     /**
-     * Merge intervals with overlaps
+     * Merge intervals that have common values
      */
     private function mergeOverlaps()
     {
@@ -141,48 +196,107 @@ class IntervalCollection implements \IteratorAggregate
         for ($i = 0; $i < count($this->intervals) - 1; $i++) {
             $current = $this->intervals[$i];
             $next = $this->intervals[$i + 1];
-            if (0 <= $this->cmp($current->until(), $next->since())) {
-                $this->intervals[$i] = new Interval(
-                    $current->since(),
-                    0 <= $this->cmp($current->until(), $next->until()) ? $current->until() : $next->until()
-                );
+            if (0 < $this->cmpV($current->high(), $next->low()) ||
+                (0 == $this->cmpV($current->high(), $next->low()) &&
+                ($current->high()->isIncluded() || $next->low()->isIncluded()))
+                ) {
+                $builder = new IntervalBuilder();
+                $this->intervals[$i] = $builder
+                    ->low(
+                        $current->low()->value(),
+                        $current->low()->isIncluded()
+                    )
+                    ->high(
+                        (0 <= $this->cmpV($current->high(), $next->high())
+                            ? $current->high()->value()
+                            : $next->high()->value()),
+                        (0 == $this->cmpV($current->high(), $next->high())
+                            ? ($current->high()->isIncluded() || $next->high()->isIncluded())
+                            : (0 < $this->cmpV($current->high(), $next->high())
+                                ? $current->high()->isIncluded()
+                                : $next->high()->isIncluded()))
+                    )
+                    ->getInterval();
                 unset($this->intervals[$i + 1]);
                 $i--;
                 $this->sort();
             }
+
         }
     }
 
     /**
      * Sort $this->internals array
+     *
+     * sorting rules:
+     * by low value
+     *   if low values are equal, then included value is smaller then excluded
+     * by high value
+     *   if high values are equal, then included value is bigger then excluded
+     *
+     * correctly sorted example:
+     * [1, 2]
+     * [1, 2)
+     * (1, 2)
+     * (1, 2]
      */
     private function sort()
     {
         usort(
             $this->intervals,
             function (Interval $a, Interval $b) {
-                if (0 == $this->cmp($a->since(), $b->since())) {
-                    if (0 == $this->cmp($a->until(), $b->until())) {
-                        return 0;
+                if (0 == $this->cmpV($a->low(), $b->low())) {
+                    if ($a->low()->isIncluded() != $b->low()->isIncluded()) {
+                        return $a->low()->isIncluded() && !$b->low()->isIncluded() ? -1 : 1;
+                    } else {
+                        if (0 == $this->cmpV($a->high(), $b->high())) {
+                            if ($a->high()->isIncluded() != $b->high()->isIncluded()) {
+                                return $a->high()->isIncluded() && !$b->high()->isIncluded() ? 1 : -1;
+                            } else {
+                                return 0;
+                            }
+                        } else {
+                            return $this->cmpV($a->high(), $b->high());
+                        }
                     }
-                    return $this->cmp($a->until(), $b->until());
+                } else {
+                    return $this->cmpV($a->low(), $b->low());
                 }
-                return $this->cmp($a->since(), $b->since());
             }
         );
     }
 
     /**
-     * @param mixed $a
-     * @param mixed $b
+     * Compare values of IntervalValue
+     *
+     * @param IntervalValue $a
+     * @param IntervalValue $b
      * @return int
      */
-    private function cmp($a, $b)
+    private function cmpV(IntervalValue $a, IntervalValue $b)
     {
-        return (int)call_user_func($this->compareFunction, $a, $b);
+        return (int)call_user_func($this->compareFunction, $a->value(), $b->value());
     }
 
     /**
+     * Compare inclusion attributes of IntervalValue
+     *
+     * @param IntervalValue $a
+     * @param IntervalValue $b
+     * @return int
+     */
+    private function cmpI(IntervalValue $a, IntervalValue $b)
+    {
+        if ($a->isIncluded() == $b->isIncluded()) {
+            return 0;
+        }
+
+        return $a->isIncluded() ? 1 : -1;
+    }
+
+    /**
+     * Default function to compare IntervalValue values
+     *
      * @return callable
      */
     private function defaultCompareFunction()

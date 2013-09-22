@@ -1,55 +1,89 @@
-# Usage
+# README
 
+## What is this?
+
+This libary helps you to work with intervals. Currently supported operations:
+
+    Addition example:
+    [1, 2] + [2, 3]          = [1, 3]
+    [1, 3) + (3, 5]          = [1, 3); (3, 5]
+    (1, 3) + (3, 5] + [1, 4) = [1, 5]
+    
+    Subtraction example:
+    [1, 4] - [2, 3] = [1, 2); (3, 4]
+    [1, 4] - (2, 5] = [1, 2]
+    
+Intervals can contain any type of data. Integers, string, arrays, \DateTime, etc. You just need to provide function witch can perform comaprision of your data type.
+
+
+## Installation
+```shell
+composer.phar require "puovils/intervals=1.0.*@dev"
+```
+
+## Usage
+
+Simple example with integers
 ```php
-<?php
+$builder = new IntervalBuilder();
 
-$intervals = new IntervalCollection();
-$intervals
-    ->add(new Interval('2000-01-10', '2000-01-12'))
-    ->add(new Interval('2000-01-14', '2000-01-16'))
-    ->add(new Interval('2000-01-11', '2000-01-15'));
+$interval1 = $builder
+    ->low(1, true)   // [1
+    ->high(5, false) // 5)
+    ->getInterval(); // [1, 5)
 
-$intervals->intervals() == [
-    new Interval('2000-01-10', '2000-01-16'),
-];
+$interval2 = $builder
+    ->low(2, false)  // (2
+    ->high(3, true)  // 3]
+    ->getInterval(); // (2, 3]
 
+$intervalCollection= new IntervalCollection();
+$intervals = $intervalCollection
+    ->add($interval1) // [1, 5)
+    ->sub($interval2) // (2, 3]
+    ->getIntervals(); // [1, 2]; (3, 5)
 
+echo $intervals[0]->low()->value();       // 1
+echo $intervals[0]->low()->isIncluded();  // true
+echo $intervals[0]->high()->value();      // 2
+echo $intervals[0]->high()->isIncluded(); // true
 
-$intervals = new IntervalCollection();
-$intervals
-    ->add(new Interval(10, 20))
-    ->sub(new Interval(11, 19));
+echo $intervals[1]->low()->value();       // 3
+echo $intervals[1]->low()->isIncluded();  // false
+echo $intervals[1]->high()->value();      // 5
+echo $intervals[1]->high()->isIncluded(); // false
 
-$intervals->intervals() == [
-    new Interval(10, 11),
-    new Interval(19, 20),
-];
+```
 
+With `\DateTime`
+```php
+$builder = new IntervalBuilder();
 
+$interval1 = $builder
+    ->low(new \DateTime('2000-01-15'), true)
+    ->high(new \DateTime('2000-02-15'), true)
+    ->getInterval();
 
-class MyType
-{
-    public  $value;
+$interval2 = $builder
+    ->low(new \DateTime('2000-01-17'), true)
+    ->high(new \DateTime('2000-03-01'), false)
+    ->getInterval();
 
-    public function __construct($value)
-    {
-        $this->value = $value;
-    }
-}
-$intervals = new IntervalCollection(
-    function (MyType $a, MyType $b) {
-        if ($a->value == $b->value) {
+$intervalCollection= new IntervalCollection(
+    function (\DateTime $a, \DateTime $b) {
+        if ($a->getTimestamp() == $b->getTimestamp()) {
             return 0;
         }
-        return $a->value > $b->value ? 1 : -1;
+        return $a->getTimestamp() > $b->getTimestamp() ? 1 : -1;
     }
 );
-$intervals
-    ->add(new Interval(new MyType(10), new MyType(20)))
-    ->sub(new Interval(new MyType(11), new MyType(19)));
+$intervals = $intervalCollection
+    ->add($interval1)
+    ->add($interval2)
+    ->getIntervals();
 
-$intervals->intervals() == [
-    new Interval(new MyType(10), new MyType(11)),
-    new Interval(new MyType(19), new MyType(20)),
-],
-```
+echo $intervals[0]->low()->value()->format('Y-m-d'); // 2000-01-15
+echo $intervals[0]->low()->isIncluded(); // true
+echo $intervals[0]->high()->value()->format('Y-m-d'); // 2000-03-01
+echo $intervals[0]->high()->isIncluded(); // false
+```        

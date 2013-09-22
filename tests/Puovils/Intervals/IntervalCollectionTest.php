@@ -6,188 +6,275 @@ class IntervalCollectionTest extends \PHPUnit_Framework_TestCase
 {
     public function testAdd()
     {
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 10));
+        $utils = new Utils();
 
-        $this->assertEmpty($intervals->intervals());
+        $this->assertEquals('[1, 2]', $utils->add('[1, 2]'));
 
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->add(new Interval(10, 20));
+        $this->assertEquals('[1, 1]', $utils->add('[1, 1]'));
+        $this->assertEquals('[1, 1]', $utils->add('[1, 1]; [1, 1]'));
 
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(10, 20),
-            $intervals->intervals()[0]
-        );
+        $this->assertEmpty($utils->add('(1, 1]'));
+        $this->assertEmpty($utils->add('[1, 1)'));
+        $this->assertEmpty($utils->add('(1, 1)'));
+        $this->assertEmpty($utils->add('(1, 1]; [1, 1); (1, 1)'));
 
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->add(new Interval(9, 21));
+        $this->assertEquals('[1, 2]', $utils->add('[1, 2]; [1, 2]'));
+        $this->assertEquals('[1, 2]', $utils->add('[1, 2]; [1, 2)'));
+        $this->assertEquals('[1, 2]', $utils->add('[1, 2); [1, 2]'));
 
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(9, 21),
-            $intervals->intervals()[0]
-        );
+        $this->assertEquals('[1, 2]; [3, 4]', $utils->add('[1, 2]; [3, 4]'));
+        $this->assertEquals('[1, 2]; [3, 4]', $utils->add('[3, 4]; [1, 2]'));
 
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->add(new Interval(11, 19));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 3]; [2, 4]'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 3]; [2, 4]'));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 3); [2, 4]'));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 3]; (2, 4]'));
+        $this->assertEquals('[1, 4)', $utils->add('[1, 3]; [2, 4)'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 3); [2, 4]'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 3]; (2, 4]'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 3); [2, 4)'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 3); (2, 4]'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 3); [2, 4)'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 3); (2, 4)'));
 
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(10, 20),
-            $intervals->intervals()[0]
-        );
+        $this->assertEquals('[1, 4]', $utils->add('[1, 3]; [1, 4]'));
+        $this->assertEquals('[1, 4]', $utils->add('(1, 3]; [1, 4]'));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 3); [1, 4]'));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 3]; (1, 4]'));
+        $this->assertEquals('[1, 4)', $utils->add('[1, 3]; [1, 4)'));
+        $this->assertEquals('[1, 4]', $utils->add('(1, 3); [1, 4]'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 3]; (1, 4]'));
+        $this->assertEquals('[1, 4)', $utils->add('(1, 3); [1, 4)'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 3); (1, 4]'));
+        $this->assertEquals('[1, 4)', $utils->add('(1, 3); [1, 4)'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 3); (1, 4)'));
 
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->add(new Interval(9, 11));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 4]; [2, 4]'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 4]; [2, 4]'));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 4); [2, 4]'));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 4]; (2, 4]'));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 4]; [2, 4)'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 4); [2, 4]'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 4]; (2, 4]'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 4); [2, 4)'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 4); (2, 4]'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 4); [2, 4)'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 4); (2, 4)'));
 
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(9, 20),
-            $intervals->intervals()[0]
-        );
+        $this->assertEquals('[1, 4]', $utils->add('[1, 4]; [2, 3]'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 4]; [2, 3]'));
+        $this->assertEquals('[1, 4)', $utils->add('[1, 4); [2, 3]'));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 4]; (2, 3]'));
+        $this->assertEquals('[1, 4]', $utils->add('[1, 4]; [2, 3)'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 4); [2, 3]'));
+        $this->assertEquals('(1, 4]', $utils->add('(1, 4]; (2, 3]'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 4); [2, 3)'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 4); (2, 3]'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 4); [2, 3)'));
+        $this->assertEquals('(1, 4)', $utils->add('(1, 4); (2, 3)'));
 
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->add(new Interval(19, 21));
+        $this->assertEquals('[1, 2); (2, 3]', $utils->add('[1, 2); (2, 3]'));
 
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(10, 21),
-            $intervals->intervals()[0]
-        );
-
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->add(new Interval(21, 22));
-
-        $this->assertEquals(2, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(10, 20),
-            $intervals->intervals()[0]
-        );
-        $this->assertEquals(
-            new Interval(21, 22),
-            $intervals->intervals()[1]
-        );
-
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->add(new Interval(10, 21));
-
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(10, 21),
-            $intervals->intervals()[0]
-        );
-
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(11, 21));
-        $intervals->add(new Interval(10, 21));
-
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(10, 21),
-            $intervals->intervals()[0]
-        );
-
+        $this->assertEquals('[1, 3]', $utils->add('[1, 2); [2, 3]'));
+        $this->assertEquals('[1, 3]', $utils->add('[1, 2]; (2, 3]'));
     }
 
     public function testSub()
     {
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->sub(new Interval(10, 11));
+        $utils = new Utils();
 
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(11, 20),
-            $intervals->intervals()[0]
-        );
+        $this->assertEmpty($utils->sub('[1, 1]', '[1, 1]'));
+        $this->assertEmpty($utils->sub('(1, 1]', '[1, 1]'));
+        $this->assertEmpty($utils->sub('[1, 1)', '[1, 1]'));
+        $this->assertEmpty($utils->sub('(1, 1)', '[1, 1]'));
 
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->sub(new Interval(11, 20));
+        $this->assertEmpty($utils->sub('[1, 2]', '[1, 2]'));
+        $this->assertEmpty($utils->sub('(1, 2]', '[1, 2]'));
+        $this->assertEmpty($utils->sub('[1, 2)', '[1, 2]'));
+        $this->assertEmpty($utils->sub('(1, 2)', '[1, 2]'));
 
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(10, 11),
-            $intervals->intervals()[0]
-        );
+        $this->assertEmpty($utils->sub('(1, 2]', '(1, 2]'));
+        $this->assertEmpty($utils->sub('[1, 2)', '[1, 2)'));
+        $this->assertEmpty($utils->sub('(1, 2)', '(1, 2)'));
 
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->sub(new Interval(9, 11));
+        $this->assertEmpty($utils->sub('[2, 4]', '[1, 5]'));
+        $this->assertEmpty($utils->sub('(2, 4]', '(1, 5]'));
+        $this->assertEmpty($utils->sub('[2, 4)', '[1, 5)'));
+        $this->assertEmpty($utils->sub('(2, 4)', '(1, 5)'));
 
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(11, 20),
-            $intervals->intervals()[0]
-        );
+        $this->assertEquals('[1, 2); (3, 4]', $utils->sub('[1, 4]', '[2, 3]'));
+        $this->assertEquals('[1, 2); [3, 4]', $utils->sub('[1, 4]', '[2, 3)'));
+        $this->assertEquals('[1, 2]; (3, 4]', $utils->sub('[1, 4]', '(2, 3]'));
+        $this->assertEquals('[1, 2]; [3, 4]', $utils->sub('[1, 4]', '(2, 3)'));
+        $this->assertEquals('[1, 2); (3, 4)', $utils->sub('[1, 4)', '[2, 3]'));
+        $this->assertEquals('[1, 2); [3, 4)', $utils->sub('[1, 4)', '[2, 3)'));
+        $this->assertEquals('[1, 2]; (3, 4)', $utils->sub('[1, 4)', '(2, 3]'));
+        $this->assertEquals('[1, 2]; [3, 4)', $utils->sub('[1, 4)', '(2, 3)'));
+        $this->assertEquals('(1, 2); (3, 4]', $utils->sub('(1, 4]', '[2, 3]'));
+        $this->assertEquals('(1, 2); [3, 4]', $utils->sub('(1, 4]', '[2, 3)'));
+        $this->assertEquals('(1, 2]; (3, 4]', $utils->sub('(1, 4]', '(2, 3]'));
+        $this->assertEquals('(1, 2]; [3, 4]', $utils->sub('(1, 4]', '(2, 3)'));
+        $this->assertEquals('(1, 2); (3, 4)', $utils->sub('(1, 4)', '[2, 3]'));
+        $this->assertEquals('(1, 2); [3, 4)', $utils->sub('(1, 4)', '[2, 3)'));
+        $this->assertEquals('(1, 2]; (3, 4)', $utils->sub('(1, 4)', '(2, 3]'));
+        $this->assertEquals('(1, 2]; [3, 4)', $utils->sub('(1, 4)', '(2, 3)'));
 
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->sub(new Interval(19, 21));
+        $this->assertEquals('[1, 2)', $utils->sub('[1, 4]', '[2, 4]'));
+        $this->assertEquals('[1, 2); [4, 4]', $utils->sub('[1, 4]', '[2, 4)'));
+        $this->assertEquals('[1, 2]', $utils->sub('[1, 4]', '(2, 4]'));
+        $this->assertEquals('[1, 2]; [4, 4]', $utils->sub('[1, 4]', '(2, 4)'));
+        $this->assertEquals('[1, 2)', $utils->sub('[1, 4)', '[2, 4]'));
+        $this->assertEquals('[1, 2)', $utils->sub('[1, 4)', '[2, 4)'));
+        $this->assertEquals('[1, 2]', $utils->sub('[1, 4)', '(2, 4]'));
+        $this->assertEquals('[1, 2]', $utils->sub('[1, 4)', '(2, 4)'));
+        $this->assertEquals('(1, 2)', $utils->sub('(1, 4]', '[2, 4]'));
+        $this->assertEquals('(1, 2); [4, 4]', $utils->sub('(1, 4]', '[2, 4)'));
+        $this->assertEquals('(1, 2]', $utils->sub('(1, 4]', '(2, 4]'));
+        $this->assertEquals('(1, 2]; [4, 4]', $utils->sub('(1, 4]', '(2, 4)'));
+        $this->assertEquals('(1, 2)', $utils->sub('(1, 4)', '[2, 4]'));
+        $this->assertEquals('(1, 2)', $utils->sub('(1, 4)', '[2, 4)'));
+        $this->assertEquals('(1, 2]', $utils->sub('(1, 4)', '(2, 4]'));
+        $this->assertEquals('(1, 2]', $utils->sub('(1, 4)', '(2, 4)'));
 
-        $this->assertEquals(1, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(10, 19),
-            $intervals->intervals()[0]
-        );
+        $this->assertEquals('(3, 4]', $utils->sub('[2, 4]', '[2, 3]'));
+        $this->assertEquals('[3, 4]', $utils->sub('[2, 4]', '[2, 3)'));
+        $this->assertEquals('[2, 2]; (3, 4]', $utils->sub('[2, 4]', '(2, 3]'));
+        $this->assertEquals('[2, 2]; [3, 4]', $utils->sub('[2, 4]', '(2, 3)'));
+        $this->assertEquals('(3, 4)', $utils->sub('[2, 4)', '[2, 3]'));
+        $this->assertEquals('[3, 4)', $utils->sub('[2, 4)', '[2, 3)'));
+        $this->assertEquals('[2, 2]; (3, 4)', $utils->sub('[2, 4)', '(2, 3]'));
+        $this->assertEquals('[2, 2]; [3, 4)', $utils->sub('[2, 4)', '(2, 3)'));
+        $this->assertEquals('(3, 4]', $utils->sub('(2, 4]', '[2, 3]'));
+        $this->assertEquals('[3, 4]', $utils->sub('(2, 4]', '[2, 3)'));
+        $this->assertEquals('(3, 4]', $utils->sub('(2, 4]', '(2, 3]'));
+        $this->assertEquals('[3, 4]', $utils->sub('(2, 4]', '(2, 3)'));
+        $this->assertEquals('(3, 4)', $utils->sub('(2, 4)', '[2, 3]'));
+        $this->assertEquals('[3, 4)', $utils->sub('(2, 4)', '[2, 3)'));
+        $this->assertEquals('(3, 4)', $utils->sub('(2, 4)', '(2, 3]'));
+        $this->assertEquals('[3, 4)', $utils->sub('(2, 4)', '(2, 3)'));
 
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->sub(new Interval(9, 21));
 
-        $this->assertEmpty($intervals->intervals());
+        $this->assertEquals('[1, 2)', $utils->sub('[1, 4]', '[2, 5]'));
+        $this->assertEquals('[1, 2)', $utils->sub('[1, 4]', '[2, 5)'));
+        $this->assertEquals('[1, 2]', $utils->sub('[1, 4]', '(2, 5]'));
+        $this->assertEquals('[1, 2]', $utils->sub('[1, 4]', '(2, 5)'));
+        $this->assertEquals('[1, 2)', $utils->sub('[1, 4)', '[2, 5]'));
+        $this->assertEquals('[1, 2)', $utils->sub('[1, 4)', '[2, 5)'));
+        $this->assertEquals('[1, 2]', $utils->sub('[1, 4)', '(2, 5]'));
+        $this->assertEquals('[1, 2]', $utils->sub('[1, 4)', '(2, 5)'));
+        $this->assertEquals('(1, 2)', $utils->sub('(1, 4]', '[2, 5]'));
+        $this->assertEquals('(1, 2)', $utils->sub('(1, 4]', '[2, 5)'));
+        $this->assertEquals('(1, 2]', $utils->sub('(1, 4]', '(2, 5]'));
+        $this->assertEquals('(1, 2]', $utils->sub('(1, 4]', '(2, 5)'));
+        $this->assertEquals('(1, 2)', $utils->sub('(1, 4)', '[2, 5]'));
+        $this->assertEquals('(1, 2)', $utils->sub('(1, 4)', '[2, 5)'));
+        $this->assertEquals('(1, 2]', $utils->sub('(1, 4)', '(2, 5]'));
+        $this->assertEquals('(1, 2]', $utils->sub('(1, 4)', '(2, 5)'));
 
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
-        $intervals->sub(new Interval(11, 19));
+        $this->assertEquals('(4, 5]', $utils->sub('[3, 5]', '[1, 4]'));
+        $this->assertEquals('[4, 5]', $utils->sub('[3, 5]', '[1, 4)'));
+        $this->assertEquals('(4, 5]', $utils->sub('[3, 5]', '(1, 4]'));
+        $this->assertEquals('[4, 5]', $utils->sub('[3, 5]', '(1, 4)'));
+        $this->assertEquals('(4, 5)', $utils->sub('[3, 5)', '[1, 4]'));
+        $this->assertEquals('[4, 5)', $utils->sub('[3, 5)', '[1, 4)'));
+        $this->assertEquals('(4, 5)', $utils->sub('[3, 5)', '(1, 4]'));
+        $this->assertEquals('[4, 5)', $utils->sub('[3, 5)', '(1, 4)'));
+        $this->assertEquals('(4, 5]', $utils->sub('(3, 5]', '[1, 4]'));
+        $this->assertEquals('[4, 5]', $utils->sub('(3, 5]', '[1, 4)'));
+        $this->assertEquals('(4, 5]', $utils->sub('(3, 5]', '(1, 4]'));
+        $this->assertEquals('[4, 5]', $utils->sub('(3, 5]', '(1, 4)'));
+        $this->assertEquals('(4, 5)', $utils->sub('(3, 5)', '[1, 4]'));
+        $this->assertEquals('[4, 5)', $utils->sub('(3, 5)', '[1, 4)'));
+        $this->assertEquals('(4, 5)', $utils->sub('(3, 5)', '(1, 4]'));
+        $this->assertEquals('[4, 5)', $utils->sub('(3, 5)', '(1, 4)'));
 
-        $this->assertEquals(2, count($intervals->intervals()));
-        $this->assertEquals(
-            new Interval(10, 11),
-            $intervals->intervals()[0]
-        );
-        $this->assertEquals(
-            new Interval(19, 20),
-            $intervals->intervals()[1]
-        );
-
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(11, 20));
-        $intervals->sub(new Interval(11, 20));
-
-        $this->assertEmpty($intervals->intervals());
+        $this->assertEquals('(1, 4]', $utils->sub('[1, 4]', '[1, 1]'));
+        $this->assertEquals('[1, 4)', $utils->sub('[1, 4]', '[4, 4]'));
+        $this->assertEquals('(1, 4)', $utils->sub('[1, 4)', '[1, 1]'));
+        $this->assertEquals('(1, 4)', $utils->sub('(1, 4]', '[4, 4]'));
     }
 
     public function testContains()
     {
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(10, 20));
+        $utils = new Utils();
 
-        $this->assertTrue($intervals->contains(10));
-        $this->assertTrue($intervals->contains(19));
-        $this->assertFalse($intervals->contains(9));
-        $this->assertFalse($intervals->contains(20));
-        $this->assertFalse($intervals->contains(21));
+        $intervals = $utils->collectionFromString('[1, 4]');
+        $this->assertTrue($intervals->contains(1));
+        $this->assertTrue($intervals->contains(3));
+        $this->assertTrue($intervals->contains(4));
+        $this->assertFalse($intervals->contains(5));
+
+        $intervals = $utils->collectionFromString('(1, 4]');
+        $this->assertFalse($intervals->contains(1));
+        $this->assertTrue($intervals->contains(3));
+        $this->assertTrue($intervals->contains(4));
+        $this->assertFalse($intervals->contains(5));
+
+        $intervals = $utils->collectionFromString('[1, 4)');
+        $this->assertTrue($intervals->contains(1));
+        $this->assertTrue($intervals->contains(3));
+        $this->assertFalse($intervals->contains(4));
+        $this->assertFalse($intervals->contains(5));
+
+        $intervals = $utils->collectionFromString('(1, 4)');
+        $this->assertFalse($intervals->contains(1));
+        $this->assertTrue($intervals->contains(3));
+        $this->assertFalse($intervals->contains(4));
+        $this->assertFalse($intervals->contains(5));
     }
 
-    public function testContainsInerval()
+    public function testContainsInterval()
     {
-        $intervals = new IntervalCollection();
-        $intervals->add(new Interval(1, 10));
-        $intervals->add(new Interval(20, 30));
+        $utils = new Utils();
 
-        $this->assertTrue($intervals->containsInterval(new Interval(1, 10)));
-        $this->assertTrue($intervals->containsInterval(new Interval(2, 3)));
-        $this->assertFalse($intervals->containsInterval(new Interval(9, 11)));
-        $this->assertFalse($intervals->containsInterval(new Interval(19, 21)));
-        $this->assertFalse($intervals->containsInterval(new Interval(11, 12)));
+        $intervals = $utils->collectionFromString('[1, 4]');
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[0, 1]')));
+        $this->assertTrue($intervals->containsInterval($utils->intervalFromString('[1, 1]')));
+        $this->assertTrue($intervals->containsInterval($utils->intervalFromString('[4, 4]')));
+        $this->assertTrue($intervals->containsInterval($utils->intervalFromString('[2, 3]')));
+        $this->assertTrue($intervals->containsInterval($utils->intervalFromString('[1, 4]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[2, 5]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[0, 5]')));
+
+        $intervals = $utils->collectionFromString('(1, 4]');
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[0, 1]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[1, 1]')));
+        $this->assertTrue($intervals->containsInterval($utils->intervalFromString('[4, 4]')));
+        $this->assertTrue($intervals->containsInterval($utils->intervalFromString('[2, 3]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[1, 4]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[2, 5]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[0, 5]')));
+
+        $intervals = $utils->collectionFromString('[1, 4)');
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[0, 1]')));
+        $this->assertTrue($intervals->containsInterval($utils->intervalFromString('[1, 1]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[4, 4]')));
+        $this->assertTrue($intervals->containsInterval($utils->intervalFromString('[2, 3]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[1, 4]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[2, 5]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[0, 5]')));
+
+        $intervals = $utils->collectionFromString('(1, 4)');
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[0, 1]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[1, 1]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[4, 4]')));
+        $this->assertTrue($intervals->containsInterval($utils->intervalFromString('[2, 3]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[1, 4]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[2, 5]')));
+        $this->assertFalse($intervals->containsInterval($utils->intervalFromString('[0, 5]')));
+    }
+
+    public function testGetIntervals()
+    {
+        $utils = new Utils();
+
+        $intervals = new IntervalCollection();
+
+        $interval1 = $utils->intervalFromString('[1, 2]');
+        $interval2 = $utils->intervalFromString('(3, 4)');
+        $intervals->add($interval1);
+        $intervals->add($interval2);
+
+        $this->assertEquals([$interval1, $interval2], $intervals->getIntervals());
     }
 }
