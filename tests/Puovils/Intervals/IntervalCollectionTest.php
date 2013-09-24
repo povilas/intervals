@@ -277,4 +277,20 @@ class IntervalCollectionTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals([$interval1, $interval2], $intervals->getIntervals());
     }
+
+    public function testCompareWithClosure()
+    {
+        $intervals = new IntervalCollection(function() {});
+    }
+
+    public function testCompareWithFunction()
+    {
+        $intervals = new IntervalCollection('strcmp');
+    }
+
+    public function testCompareWithClassMethod()
+    {
+        $mock = $this->getMock('\SplPriorityQueue');
+        $intervals = new IntervalCollection([$mock, 'compare']);
+    }
 }
