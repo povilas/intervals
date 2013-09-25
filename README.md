@@ -1,5 +1,7 @@
 # README
 
+[![Build Status](https://travis-ci.org/povilas/intervals.png?branch=master)](https://travis-ci.org/povilas/intervals)
+
 ## What is this?
 
 This libary helps you to work with intervals. Currently supported operations:
