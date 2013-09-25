@@ -27,7 +27,7 @@ class IntervalCollection implements \IteratorAggregate
      *
      * @param callable $compareFunction Function used to compare interval values
      */
-    public function __construct(\Closure $compareFunction = null)
+    public function __construct(callable $compareFunction = null)
     {
         if (null === $compareFunction) {
             $compareFunction = $this->defaultCompareFunction();
